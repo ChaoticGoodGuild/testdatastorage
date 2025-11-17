@@ -461,12 +461,14 @@
       };
       // Attempt to send data to the Google Apps Script backend
       try {
+        // Use no-cors mode and a simple Content-Type header to avoid CORS preflight
         fetch(SCRIPT_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload)
-        }).then(function(resp){
-          // Optionally handle response or ignore; errors are caught below
+        }).catch(function(err){
+          // ignore errors since cross-origin requests may not return a response
         });
       } catch(err) {
         console.error('Failed to send data to backend:', err);
