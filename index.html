@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personality Alignment — Chaotic Good Guild</title>
+  <style>
+    :root{
+      --ink:#e9f3f7; --muted:#9fb3bf; --brandA:#265b74; --brandB:#5d376b; --accent:#9fe0ff;
+      --good:#62ffa1; --evil:#ff6a6a; --law:#7ec0ff; --chaos:#ff82ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--ink);
+      font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #2a4a60 20%, transparent 60%),
+        radial-gradient(1400px 700px at 100% 110%, #4b2b66 20%, transparent 60%),
+        conic-gradient(from 180deg at 50% 50%, rgba(40,60,90,.12), rgba(20,30,40,.08), rgba(40,60,90,.12));
+      background-color:#0c1118;
+    }
+    .hidden{display:none!important}
+
+    /* ——— LANDING ——— */
+    .hero{position:relative; min-height:100dvh; overflow:hidden; display:grid; place-items:center;}
+    .prism-container{position:absolute; inset:0; z-index:0; pointer-events:none}
+    .hero-inner{position:relative; z-index:2; text-align:center; display:grid; gap:6px; align-items:center; justify-items:center}
+    .logo{max-width:min(90vw,820px); width:95%; filter:drop-shadow(0 30px 80px rgba(0,180,255,.18))}
+    .start{display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:16px 22px; border-radius:999px; border:1px solid #2a3e55; color:#071018; background:#dff4ff; font-weight:800; letter-spacing:.3px; text-transform:uppercase; text-decoration:none; box-shadow:0 8px 30px rgba(20,120,200,.35); transform:translateY(-8px)}
+    .start:hover{box-shadow:0 12px 40px rgba(60,160,240,.4)}
+
+    /* ——— APP ——— */
+    .app{width:min(1000px, 100%); margin:0 auto; padding:28px; position:relative}
+    .app::before{content:""; position:absolute; inset:-2px; pointer-events:none; z-index:-1; background:
+      radial-gradient(600px 260px at 20% -10%, #3db2ff2a, transparent 65%),
+      radial-gradient(900px 360px at 80% 110%, #b86dff22, transparent 70%),
+      linear-gradient(135deg,#0f2027,#203a43,#2c5364)}
+
+    .card{position:relative; background:linear-gradient(180deg, #111a28, #0d1521); border:1px solid #203244; border-radius:22px; overflow:hidden; box-shadow:0 20px 80px rgba(0,0,0,.55)}
+    .card::before{content:""; position:absolute; inset:-1px; border-radius:22px; padding:1px; background:linear-gradient(180deg, #2b4b66, transparent 40%, #53386a); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude}
+    .card::after{content:""; position:absolute; inset:0; pointer-events:none; background:
+      radial-gradient(500px 160px at 50% -80px, #3db2ff26, transparent 72%),
+      radial-gradient(760px 360px at 50% 120%, #b86dff1f, transparent 70%)}
+    .content{padding:28px clamp(20px,2.8vw,34px) 28px}
+
+    .progress-count{text-align:center; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#a7c0d1; margin:0 0 8px}
+    .progress{height:10px; background:#0e141d; border:1px solid #233141; border-radius:999px; overflow:hidden; margin:8px 0 24px; box-shadow:inset 0 0 0 1px #0b1117}
+    .bar{height:100%; width:0%; background:linear-gradient(90deg, var(--brandA), var(--brandB)); box-shadow:0 0 18px #3aa7ff88; transition:width .35s ease}
+
+    .question{font-size:clamp(20px,2.8vw,26px); font-weight:700; margin:6px 0 14px}
+
+    .answers{display:grid; gap:14px; grid-template-columns:repeat(2, minmax(0,1fr)); margin-top:6px}
+    .btn{position:relative; display:flex; align-items:center; justify-content:center; padding:18px 16px; border-radius:16px; border:1px solid #223246; cursor:pointer; user-select:none; background:linear-gradient(180deg,#0f1823,#0b1018); color:#dfe9f3; font-weight:700; letter-spacing:.2px; box-shadow:0 2px 0 #000, inset 0 0 0 1px #122233; transition:transform .06s ease, border-color .15s ease, box-shadow .2s ease}
+    .btn:hover{border-color:#2a4967; box-shadow:0 12px 36px rgba(40,120,200,.18), inset 0 0 0 1px #1a3a55}
+    .btn:active{transform:translateY(1px)}
+
+    .guild-star{display:grid; place-items:center; margin-top:18px}
+    .guild-star img{width:90px; height:auto; opacity:.75; filter:drop-shadow(0 8px 40px rgba(120,200,255,.25))}
+
+    .controls{display:flex; align-items:center; justify-content:space-between; margin-top:18px}
+    .ghost{background:linear-gradient(180deg,#0a121a,#070c12); border:1px dashed #2a3c51; color:#b8cfe0}
+
+    /* RESULTS GRID */
+    .results{display:none}
+    .results.active{display:block}
+    .grid{position:relative; width:100%; aspect-ratio:1/1; background:#0a0f15; border:1px solid #223046; border-radius:16px; overflow:hidden}
+    .grid img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:drop-shadow(0 8px 40px rgba(0,0,0,.45))}
+
+    .quad{position:absolute; width:50%; height:50%; pointer-events:none; opacity:0; transition:opacity .6s ease}
+    .quad.show{opacity:.2}
+    #q1{right:0; top:0; background:radial-gradient(800px 600px at 100% 0%, var(--good), transparent 70%)}
+    #q2{left:0; top:0;  background:radial-gradient(800px 600px at 0% 0%, var(--law), transparent 70%)}
+    #q3{left:0; bottom:0;background:radial-gradient(800px 600px at 0% 100%, var(--evil), transparent 70%)}
+    #q4{right:0; bottom:0;background:radial-gradient(800px 600px at 100% 100%, var(--chaos), transparent 70%)}
+
+    .cross{position:absolute; pointer-events:none}
+    .vline,.hline{position:absolute; background:#c2edff55; box-shadow:0 0 16px #7fd6ffaa}
+    .vline{width:2px; height:100%; left:50%; top:0; transform:translateX(-50%)}
+    .hline{height:2px; width:100%; top:50%; left:0; transform:translateY(-50%)}
+
+    .marker{position:absolute; width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffffff, #c1edff 50%, #58c2ff 65%, #0aa2ff 66%, #0aa2ff 72%, transparent 73%); transform:translate(-50%, -50%); box-shadow:0 4px 18px rgba(80,200,255,.6)}
+    .marker::after{content:""; position:absolute; width:40px; height:40px; border-radius:50%; border:2px solid #58c2ff; top:50%; left:50%; transform:translate(-50%,-50%) scale(.4); opacity:1; animation:ping 1.5s infinite ease-out}
+    @keyframes ping{to{transform:translate(-50%,-50%) scale(1.6); opacity:0}}
+
+    .badge{position:absolute; transform:translate(-50%, calc(-100% - 10px)); padding:6px 10px; font-weight:800; border-radius:10px; font-size:12px; color:#071018; background:#dff4ff; border:1px solid #89cfff; box-shadow:0 8px 30px rgba(20,120,200,.35); white-space:nowrap}
+
+    .xy{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px}
+    .tile{background:#0c141f; border:1px solid #1c2b3d; border-radius:12px; padding:10px}
+    .tile h4{margin:0 0 6px; font-size:12px; color:#9fb3bf; letter-spacing:.08em; text-transform:uppercase}
+    .again{display:inline-block; margin-top:12px; color:#bfe7ff}
+
+    /* Visual result container */
+    .result-visual{display:none; margin-top:20px; text-align:center;}
+    .result-visual .alignment-title{font-size:24px; font-weight:800; margin-bottom:10px; color:var(--ink); letter-spacing:.05em; text-transform:uppercase;}
+    .result-visual img{width:200px; height:auto; object-fit:cover; margin-bottom:14px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.4);}
+    .result-visual p{margin:0; color:var(--ink); line-height:1.5; font-size:14px; max-width:600px; margin-left:auto; margin-right:auto;}
+
+    /* Demographics form styling */
+    #demographicsCard .demo-field{
+      width:100%;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid #223246;
+      background:linear-gradient(180deg,#0f1823,#0b1018);
+      color:var(--ink);
+      box-shadow:inset 0 0 0 1px #122233;
+    }
+    #demographicsCard .demo-field:focus{
+      outline:none;
+      border-color:#2a4967;
+      box-shadow:0 0 0 2px rgba(40,120,200,.3);
+    }
+    #demographicsCard .disclaimer{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      margin-bottom:12px;
+      line-height:1.4;
+    }
+
+    /* Fullscreen overlay for demographics form */
+    .overlay{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100vw;
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,.6);
+      z-index:999;
+    }
+    .overlay.hidden{ display:none!important; }
+
+    /* Ensure pseudo-elements on the demographics card do not block input interactions */
+    #demographicsCard::before,
+    #demographicsCard::after{
+      pointer-events:none;
+    }
+
+    /* Darker background for input and select fields to improve contrast */
+    #demographicsCard .demo-field{
+      background-color:#0f1823;
+      background-image:none;
+      color:var(--ink);
+      border:1px solid #223246;
+    }
+    #demographicsCard .demo-field option{
+      background-color:#0f1823;
+      color:var(--ink);
+    }
+    /* Placeholder text color for email input */
+    #demographicsCard input.demo-field::placeholder{
+      color:var(--muted);
+    }
+
+    @media (max-width:520px){ .answers{grid-template-columns:1fr} .xy{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <!-- LANDING -->
+  <section class="hero" id="hero">
+    <div class="prism-container" id="prism"></div>
+    <div class="hero-inner">
+      <img class="logo" src="Chaotic Good Guild Logo PGN.png" alt="Chaotic Good Guild logo" />
+      <a href="#" class="start" id="startBtn">Start Personality Test</a>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <div class="app hidden" id="app">
+    <div class="card" id="quizCard">
+      <div class="content">
+        <div class="progress-count" id="counter">Question 1/28</div>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <div class="question" id="question">Loading…</div>
+        <div class="answers" id="answers"></div>
+        <div class="guild-star"><img src="Guild Star.png" alt="Guild star" /></div>
+        <div class="controls"><button class="btn ghost" id="restartBtn">Restart</button></div>
+      </div>
+    </div>
+
+    <div class="card results" id="results">
+      <div class="content">
+        <div class="question" style="margin-top:4px">Your Alignment Plot</div>
+        <div class="grid" id="grid">
+          <img src="CGG Graph.png" alt="Alignment grid" onerror="this.style.display='none'" />
+          <div id="q1" class="quad"></div>
+          <div id="q2" class="quad"></div>
+          <div id="q3" class="quad"></div>
+          <div id="q4" class="quad"></div>
+          <div class="cross" id="cross"><div class="vline"></div><div class="hline"></div></div>
+          <div class="marker" id="marker" title="Your position"></div>
+          <div class="badge" id="badge">&nbsp;</div>
+        </div>
+        <div class="xy">
+          <div class="tile"><h4>Ethics (Lawful ⇄ Chaotic)</h4><div id="ethicsScore">0</div></div>
+          <div class="tile"><h4>Morality (Evil ⇄ Good)</h4><div id="moralityScore">0</div></div>
+        </div>
+        <!-- Result visual: alignment title, image and description -->
+        <div id="resultVisual" class="result-visual">
+          <div id="alignmentTitle" class="alignment-title"></div>
+          <img id="resultImg" src="" alt="Alignment image" />
+          <p id="resultDesc"></p>
+        </div>
+        <a class="again" href="#" id="again">Take it again</a>
+      </div>
+    </div>
+
+    <!-- DEMOGRAPHICS OVERLAY AND FORM -->
+    <div id="demoOverlay" class="overlay hidden">
+      <div class="card" id="demographicsCard">
+        <div class="content">
+          <div class="question" style="margin-top:4px">Almost done! Please share a few details</div>
+          <form id="demoForm" novalidate>
+            <label for="emailInput" style="display:block; font-weight:600; margin-top:12px; margin-bottom:4px">Email (required)</label>
+            <input type="email" id="emailInput" class="demo-field" placeholder="you@example.com" required />
+
+            <label for="ageSelect" style="display:block; font-weight:600; margin-top:12px; margin-bottom:4px">Age (optional)</label>
+            <select id="ageSelect" class="demo-field">
+              <option value="">Prefer not to say</option>
+              <option value="18-24">18–24</option>
+              <option value="25-34">25–34</option>
+              <option value="35-44">35–44</option>
+              <option value="45-54">45–54</option>
+              <option value="55+">55+</option>
+            </select>
+
+            <label for="genderSelect" style="display:block; font-weight:600; margin-top:12px; margin-bottom:4px">Gender (optional)</label>
+            <select id="genderSelect" class="demo-field">
+              <option value="">Prefer not to say</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Non-binary">Non-binary</option>
+            </select>
+
+            <label style="display:flex; align-items:center; font-weight:600; margin-top:12px">
+              <input type="checkbox" id="transCheck" style="margin-right:8px" /> Identify as trans
+            </label>
+
+            <p class="disclaimer">Your demographic data will be stored separately from your email and anonymized to provide a relevant experience for those who wish to participate with the Chaotic Good Guild.</p>
+
+            <button type="submit" id="demoSubmit" class="btn" style="margin-top:12px; width:100%">See My Results</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== QUIZ ENGINE =====
+  (function(){
+    // Map of alignment labels to descriptive paragraphs
+    const DESCRIPTIONS = {
+      'Lawful Good': 'Ah, a champion of laws and justice. Your sense of order is as keen as your moral compass. You\'re the one friends call when trouble knocks, and you never hesitate to carry the torch into the dark. Yet, don\'t forget: rules can be bent just a tad if it means saving the day or having some fun. After all, how could one throw a surprise party or keep confidence of a friend without withholding truth but for a moment?',
+      'Chaotic Good': 'You are a whirlwind of freedom with a heart of gold. You follow your conscience, not dusty rules written by harrowed hands. When something isn\'t right, you fix it despite procedure or policy. Your mischief might fluster the “proper” folk, but those you help smile a little brighter. Keep dancing to your own song; the world needs your unpredictable kindness.',
+      'Neutral Good': 'You don\'t care about crowns or chains; you care about what\'s right. You\'ve a knack for finding the middle path, and helping without making a spectacle. Your compassion drives you, but you won\'t get mired in squabbles over order or chaos. The coin you carry isn\'t weighted by law or rebellion, just by the weight of helping hands. That\'s a wonderful thing—but don\'t be afraid to enjoy a bit of trickery now and then.',
+      'Lawful Neutral': 'You, my friend, are the steady hand that keeps the ledger balanced. Duty and tradition guide you more than any flashy notion of “good” or “evil.” You see the world as a set of gears in motion, and you keep them turning even when others squabble about why. There\'s something reassuring in your predictability, but take care not to become too rigid. Even clocks have their spring days when they tick a little off beat.',
+      'True Neutral': 'You are the elusive master of balance. You\'ve learned to stand in the center and weigh both sides, never tipping too far. Some call you indecisive, but you\'re simply mindful of the scales. You step in when needed and step away when not, keeping harmony without playing favorites. Just remember, neutrality doesn\'t mean ignoring your own heart\'s desires.',
+      'Chaotic Neutral': 'Ah, a true free spirit! You blow like the wind—uncatchable, ever-changing. You answer to no one but your own curiosity and whims. On occasion it\'s admirable. Others might find your unpredictability maddening, but it keeps them on their toes. Just be sure your escapades leave at least a few bridges unburnt—for yourself and your fellow mischief-makers.',
+      'Lawful Evil': 'You are a master of structure, and perhaps too skilled at shaping it to suit your wants. You\'ve learned how to climb systems by tightening rules around others while loosening them for yourself. It works—right up until people realize your order is merely a velvet-wrapped cage placed over their choices. Your careful composure can make you powerful, but it can also make you profoundly lonely. After all, control can win compliance, but it rarely wins trust… and trust is the one currency no empire thrives without.',
+      'Neutral Evil': 'You choose whichever path profits you most, stepping lightly around inconvenience and responsibility alike. It\'s clever in the moment, yes—but every shortcut you take often sends someone else tumbling into the long way around. You gather advantages quickly, but you lose support just as fast, leaving you surrounded by opportunities and conspicuously short on allies. When everything is transactional, everyone becomes disposable—including you. You may win the game for a while, but the victory feels hollow when there\'s no one left to celebrate with you.',
+      'Chaotic Evil': 'You burn hot and bright, lashing out at limits simply because they exist. Your impulses can feel intoxicating, but the fallout they create scorches more than the world around you—it singes your own chances at connection, safety, and meaning. The thrill of destruction fades quickly; the consequences cling far longer than the chaos that caused them. You may take pride in being unpredictable, but unpredictability often isolates more than it empowers. Even storms must rest eventually… and when you stop spinning, you deserve a life that hasn\'t been reduced to ash.'
+    };
+
+    // Map of alignment labels to image filenames
+    const IMAGE_MAP = {
+      'Lawful Good': 'Lawful Good.JPG',
+      'Chaotic Good': 'Chaotic Good.JPG',
+      'Lawful Evil': 'Lawful Evil.JPG',
+      'Chaotic Evil': 'Chaotic Evil.png',
+      'Neutral Good': 'Neutral Good.JPG',
+      'Neutral Evil': 'Neutral Evil.png',
+      'Lawful Neutral': 'Lawful Neutral.JPG',
+      'Chaotic Neutral': 'Chaotic Neutral.png',
+      'True Neutral': 'Neutral.png'
+    };
+
+    // Define questions and scoring
+    const QUESTIONS = [
+      {text:"It’s better to follow clear rules than to improvise in the moment.", axis:'ethics', polarity:-1},
+      {text:"A society without rules is like a map without roads — chaotic and dangerous.", axis:'ethics', polarity:-1},
+      {text:"I prefer flexibility over structure, even when the stakes are high.", axis:'ethics', polarity:+1},
+      {text:"When the plan falls apart, I smile — that’s when the real magic starts.", axis:'ethics', polarity:+1},
+      {text:"Some people are born to be ruled.", axis:'morality', polarity:-1},
+      {text:"Most folks are stepping stones; you just need to know which way to step", axis:'morality', polarity:-1},
+      {text:"Rules are useful guidelines - for other people", axis:'morality', polarity:-1},
+      {text:"Clear procedures prevent costly mistakes", axis:'ethics', polarity:-1},
+      {text:"It's not wrong to use people if it gets you where you need to go", axis:'morality', polarity:-1},
+      {text:"Any tool is fair game if it gets the job done.", axis:'ethics', polarity:+1},
+      {text:"I feel more comfortable when someone else takes charge.", axis:'ethics', polarity:-1},
+      {text:"A well-marked path beats a thrilling shortcut.", axis:'ethics', polarity:-1},
+      {text:"Getting it done fast matters more than getting it perfect.", axis:'ethics', polarity:+1},
+      {text:"It's wiser to stay out of trouble than to get tangled up in helping strangers.", axis:'morality', polarity:-1},
+      {text:"I feel responsible for the well-being of people I may never meet.", axis:'morality', polarity:+1},
+      {text:"Causing a little disorder now and then makes life interesting", axis:'ethics', polarity:+1},
+      {text:"Everyone deserves the same chances, no matter their status.", axis:'morality', polarity:+1},
+      {text:"Titles, crowns, uniforms — none of those make someone right.", axis:'morality', polarity:+1},
+      {text:"Traditions exist for a reason and should be preserved.", axis:'ethics', polarity:-1},
+      {text:"If no one questions the past, we can't build a better future", axis:'ethics', polarity:+1},
+      {text:"A clever shortcut beats a long, proper process any day", axis:'ethics', polarity:+1},
+      {text:"If the tale improves, the teller need not be named.", axis:'morality', polarity:-1},
+      {text:"A clear plan makes for a safer journey.", axis:'ethics', polarity:-1},
+      {text:"If a deal favors me, it's not my job to make it fair.", axis:'morality', polarity:-1},
+      {text:"Helping someone is worth it, even if they can't repay you.", axis:'morality', polarity:+1},
+      {text:"Some people just aren't worth the trouble it takes to help them.", axis:'morality', polarity:-1},
+      {text:"I'd rather take a loss than take advantage of someone weaker.", axis:'morality', polarity:+1},
+      {text:"If they leave the door unlocked, they're asking for trouble.", axis:'morality', polarity:-1},
+    ];
+
+    const MAX_AXIS = { ethics: QUESTIONS.filter(q=>q.axis==='ethics').length * 2, morality: QUESTIONS.filter(q=>q.axis==='morality').length * 2 };
+
+    // URL for the Google Apps Script backend. Replace this string with your deployed Apps Script URL.
+    // The Apps Script should accept POST requests with a JSON payload and store the data in your three Google Sheets.
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLmEPB-DvDhzuKbCWTGPAe-bYmkXW9RqDQNTLRBTik2URdQhaNTIzegzZBhZTnCqiq/exec';
+    let i=0;
+    const state={ ethics:0, morality:0, answers:[] };
+
+    const hero=document.getElementById('hero');
+    const app=document.getElementById('app');
+    const startBtn=document.getElementById('startBtn');
+    const qText=document.getElementById('question');
+    const counter=document.getElementById('counter');
+    const bar=document.getElementById('bar');
+    const answersBox=document.getElementById('answers');
+    const quizCard=document.getElementById('quizCard');
+    const resultsCard=document.getElementById('results');
+    const marker=document.getElementById('marker');
+    const badge=document.getElementById('badge');
+    const cross=document.getElementById('cross');
+    const ethicsScore=document.getElementById('ethicsScore');
+    const moralityScore=document.getElementById('moralityScore');
+    const again=document.getElementById('again');
+    const restartBtn=document.getElementById('restartBtn');
+    const q1=document.getElementById('q1');
+    const q2=document.getElementById('q2');
+    const q3=document.getElementById('q3');
+    const q4=document.getElementById('q4');
+    const resultVisual=document.getElementById('resultVisual');
+    const resultImg=document.getElementById('resultImg');
+    const resultDesc=document.getElementById('resultDesc');
+    const alignmentTitle=document.getElementById('alignmentTitle');
+
+    // Demographics form elements
+    const demographicsCard=document.getElementById('demographicsCard');
+    const demoOverlay=document.getElementById('demoOverlay');
+    const emailInput=document.getElementById('emailInput');
+    const ageSelect=document.getElementById('ageSelect');
+    const genderSelect=document.getElementById('genderSelect');
+    const transCheck=document.getElementById('transCheck');
+    const demoForm=document.getElementById('demoForm');
+    const demoSubmit=document.getElementById('demoSubmit');
+
+    startBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      hero.classList.add('hidden');
+      app.classList.remove('hidden');
+      render();
+      // showDemographics will be triggered after the last question.
+    });
+
+    function render(){
+      if(i >= QUESTIONS.length){
+        return showResults();
+      }
+      const q = QUESTIONS[i];
+      counter.textContent = `Question ${i+1}/${QUESTIONS.length}`;
+      qText.textContent = q.text;
+      bar.style.width = ((i)/QUESTIONS.length*100).toFixed(1)+'%';
+      renderAnswers();
+    }
+
+    function renderAnswers(){
+      answersBox.innerHTML='';
+      const mk=(label,score)=>{
+        const b=document.createElement('button');
+        b.className='btn';
+        b.textContent=label;
+        b.setAttribute('data-score',score);
+        return b;
+      };
+      answersBox.append(
+        mk('Disagree',-2), mk('Slightly Disagree',-1), mk('Slightly Agree',1), mk('Agree',2)
+      );
+    }
+
+    function answer(score){
+      const q=QUESTIONS[i];
+      const actual=score * q.polarity;
+      state[q.axis] += actual;
+      state.answers.push({i,score});
+      i++;
+      if(i >= QUESTIONS.length){
+        bar.style.width='100%';
+        // Show demographics form instead of results
+        showDemographics();
+      } else {
+        render();
+      }
+    }
+
+    answersBox.addEventListener('click',(e)=>{
+      const b=e.target.closest('button[data-score]');
+      if(!b) return;
+      b.animate([{transform:'scale(1)'},{transform:'scale(.98)'},{transform:'scale(1)'}],{duration:160});
+      const score=parseInt(b.getAttribute('data-score'),10);
+      answer(score);
+    });
+    again.addEventListener('click',(e)=>{
+      e.preventDefault();
+      reset(true);
+    });
+    restartBtn.addEventListener('click',()=> reset(false));
+
+    // Show the demographics collection form
+    function showDemographics(){
+      quizCard.style.display='none';
+      resultsCard.classList.remove('active');
+      demoOverlay.classList.remove('hidden');
+    }
+
+    // Validate email format (simple regex)
+    function isValidEmail(email){
+      return /.+@.+\..+/.test(email);
+    }
+
+    // Handle demographics form submission
+    demoForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      if(!email || !isValidEmail(email)){
+        alert('Please enter a valid email address.');
+        return;
+      }
+      // Compute alignment label and axis percentages now
+      const x = clamp(state.ethics / MAX_AXIS.ethics, -1, 1);
+      const y = clamp(state.morality / MAX_AXIS.morality, -1, 1);
+      const alignmentLabel = quadrantLabel(x, y);
+      const ethicsPercent = Math.round((Math.abs(state.ethics) / MAX_AXIS.ethics) * 100);
+      const moralityPercent = Math.round((Math.abs(state.morality) / MAX_AXIS.morality) * 100);
+      // Generate a unique participant ID
+      const participantId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2) + Date.now().toString(36);
+      // Build payload for the backend
+      const payload = {
+        participantId: participantId,
+        email: email,
+        age: ageSelect.value || null,
+        gender: genderSelect.value || null,
+        trans: transCheck.checked || false,
+        finalAlignment: alignmentLabel,
+        ethicsRaw: state.ethics,
+        ethicsPercent: ethicsPercent,
+        moralityRaw: state.morality,
+        moralityPercent: moralityPercent,
+        answers: state.answers || []
+      };
+      // Attempt to send data to the Google Apps Script backend
+      try {
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(function(resp){
+          // Optionally handle response or ignore; errors are caught below
+        });
+      } catch(err) {
+        console.error('Failed to send data to backend:', err);
+      }
+      // Hide the overlay and store demographics locally
+      demoOverlay.classList.add('hidden');
+      state.demographics = {
+        email: email,
+        age: ageSelect.value || null,
+        gender: genderSelect.value || null,
+        trans: transCheck.checked || false
+      };
+      // Show results regardless of backend success
+      showResults();
+    });
+
+    function showResults(){
+      quizCard.style.display='none';
+      resultsCard.classList.add('active');
+      const x=clamp(state.ethics / MAX_AXIS.ethics,-1,1);
+      const y=clamp(state.morality / MAX_AXIS.morality,-1,1);
+      placeMarker(0,0,true);
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          placeMarker(x,y,false);
+        });
+      });
+      const label=quadrantLabel(x,y);
+      badge.textContent = `You got ${label}!`;
+      ethicsScore.textContent = labelForAxis('ethics', state.ethics, MAX_AXIS.ethics);
+      moralityScore.textContent = labelForAxis('morality', state.morality, MAX_AXIS.morality);
+      [q1,q2,q3,q4].forEach(el=>el.classList.remove('show'));
+      (y>=0 ? (x>=0? q1 : q2) : (x<0? q3 : q4)).classList.add('show');
+      // Update result visual: title, image, description
+      alignmentTitle.textContent = label;
+      const imgSrc = IMAGE_MAP[label];
+      if(imgSrc){ resultImg.src = imgSrc; resultImg.alt = label; }
+      else { resultImg.src=''; resultImg.alt=''; }
+      resultDesc.textContent = DESCRIPTIONS[label] || '';
+      resultVisual.style.display = 'block';
+    }
+
+    function reset(shuffle=false){
+      i=0;
+      state.ethics=0;
+      state.morality=0;
+      state.answers=[];
+      if(shuffle){ QUESTIONS.sort(()=> Math.random()-.5); }
+      quizCard.style.display='block';
+      resultsCard.classList.remove('active');
+      bar.style.width='0%';
+      // Hide result visual
+      resultVisual.style.display='none';
+      // Reset and hide demographics form overlay
+      if(typeof demoOverlay !== 'undefined'){
+        demoOverlay.classList.add('hidden');
+      }
+      if(emailInput){ emailInput.value=''; }
+      if(ageSelect){ ageSelect.value=''; }
+      if(genderSelect){ genderSelect.value=''; }
+      if(transCheck){ transCheck.checked=false; }
+      render();
+    }
+
+    // Plot calibration (your hard-coded insets)
+    const PLOT_INSETS = { left:14.4, right:14.1, top:20.3, bottom:10.7 };
+    function placeMarker(x,y,instant){
+      const plot=PLOT_INSETS;
+      const innerW=100-plot.left-plot.right;
+      const innerH=100-plot.top-plot.bottom;
+      const left=plot.left + ((x+1)*0.5)*innerW;
+      const top=plot.top + ((1-(y+1)*0.5))*innerH;
+      const t=instant?'none':'left .7s cubic-bezier(.2,.8,.2,1), top .7s cubic-bezier(.2,.8,.2,1)';
+      marker.style.transition=t;
+      badge.style.transition=t;
+      cross.style.transition=t;
+      marker.style.left=left+'%';
+      marker.style.top=top+'%';
+      badge.style.left=left+'%';
+      badge.style.top=top+'%';
+      cross.style.left=left+'%';
+      cross.style.top=top+'%';
+      cross.querySelector('.vline').style.left='0';
+      cross.querySelector('.hline').style.top='0';
+      cross.style.transform='translate(-50%, -50%)';
+    }
+
+    function labelForAxis(axis,raw,max){
+      const norm = raw / max;
+      const pct = Math.round(Math.abs(norm) * 100);
+      const word = axisWord(axis, norm);
+      return `${word} (${pct}%)`;
+    }
+    function quadrantLabel(x,y){
+      const ethicsWord = axisWord('ethics', x);
+      const moralityWord = axisWord('morality', y);
+      if(ethicsWord==='Neutral' && moralityWord==='Neutral') return 'True Neutral';
+      return `${ethicsWord} ${moralityWord}`;
+    }
+    function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+    function axisWord(axis, norm){
+      const neutralBand=0.15;
+      if(Math.abs(norm) < neutralBand) return 'Neutral';
+      if(axis === 'ethics') return norm < 0 ? 'Lawful' : 'Chaotic';
+      return norm < 0 ? 'Evil' : 'Good';
+    }
+  })();
+
+  // ===== PRISM BACKGROUND =====
+  (function(){
+    const mount = document.getElementById('prism');
+    if(!mount) return;
+    function hasWebGL(){ try{ const c=document.createElement('canvas'); return !!(c.getContext('webgl')||c.getContext('experimental-webgl')); }catch{ return false; } }
+    if(!hasWebGL()) { initFallback(); return; }
+
+    const canvas=document.createElement('canvas');
+    Object.assign(canvas.style,{position:'absolute', inset:'0', width:'100%', height:'100%', display:'block', zIndex:'0', pointerEvents:'none'});
+    mount.appendChild(canvas);
+    const gl = canvas.getContext('webgl', { alpha:true, antialias:false });
+    if(!gl){ initFallback(); return; }
+
+    const vertSrc = `attribute vec2 a; void main(){ gl_Position = vec4(a,0.0,1.0);} `;
+    const fragSrc = `precision highp float; uniform vec2 iResolution; uniform float iTime; uniform float uHeight; uniform float uBaseHalf; uniform int uUseBaseWobble; uniform float uGlow; uniform float uNoise; uniform float uSaturation; uniform float uScale; uniform float uHueShift; uniform float uColorFreq; uniform float uBloom; uniform float uCenterShift; uniform float uInvBaseHalf; uniform float uInvHeight; uniform float uMinAxis; uniform float uTimeScale; vec4 tanh4(vec4 x){ vec4 e2x=exp(2.0*x); return (e2x-1.0)/(e2x+1.0);} float rand(vec2 co){ return fract(sin(dot(co, vec2(12.9898,78.233)))*43758.5453123);} float sdOctaAnisoInv(vec3 p){ vec3 q=vec3(abs(p.x)*uInvBaseHalf, abs(p.y)*uInvHeight, abs(p.z)*uInvBaseHalf); float m=q.x+q.y+q.z-1.0; return m*uMinAxis*0.5773502691896258;} float sdPyramidUpInv(vec3 p){ float oct=sdOctaAnisoInv(p); float halfSpace=-p.y; return max(oct, halfSpace);} mat3 hueRotation(float a){ float c=cos(a), s=sin(a); mat3 W=mat3(0.299,0.587,0.114, 0.299,0.587,0.114, 0.299,0.587,0.114); mat3 U=mat3(0.701,-0.587,-0.114, -0.299,0.413,-0.114, -0.300,-0.588,0.886); mat3 V=mat3(0.168,-0.331,0.500, 0.328,0.035,-0.500, -0.497,0.296,0.201); return W + U*c + V*s; } void main(){ vec2 res=iResolution; vec2 uv=(gl_FragCoord.xy - 0.5*res.xy)/(res.y*0.1*uScale); float z=5.0; float d=0.0; vec3 p; vec4 o=vec4(0.0); float t=iTime*uTimeScale; mat2 wob = (uUseBaseWobble==1) ? mat2(cos(t), cos(t+33.0), cos(t+11.0), cos(t)) : mat2(1.0); const int STEPS=100; for(int i=0;i<STEPS;i++){ p=vec3(uv, z); p.xz = p.xz * wob; vec3 q=p; q.y+=uCenterShift; d=0.1+0.2*abs(max(sdPyramidUpInv(q), -p.y)); z-=d; o += (sin((p.y+z)*uColorFreq + vec4(0.0,1.0,2.0,3.0)) + 1.0)/d; } o = tanh4(o*o*(uGlow*uBloom)/1e5); vec3 col=o.rgb; float n=rand(gl_FragCoord.xy); col += (n-0.5)*uNoise; col = clamp(col,0.0,1.0); float L = dot(col, vec3(0.2126,0.7152,0.0722)); col = clamp(mix(vec3(L), col, uSaturation), 0.0, 1.0); if(abs(uHueShift) > 0.0001){ col = clamp(hueRotation(uHueShift) * col, 0.0, 1.0); } gl_FragColor = vec4(col, 1.0); }`;
+
+    const vs=gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, vertSrc);
+    gl.compileShader(vs);
+    const fs=gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, fragSrc);
+    gl.compileShader(fs);
+    const prog=gl.createProgram();
+    gl.attachShader(prog,vs);
+    gl.attachShader(prog,fs);
+    gl.bindAttribLocation(prog,0,'a');
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+
+    const quad = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+    const uni = n=>gl.getUniformLocation(prog,n);
+    const u = { iResolution:uni('iResolution'), iTime:uni('iTime'), uHeight:uni('uHeight'), uBaseHalf:uni('uBaseHalf'), uUseBaseWobble:uni('uUseBaseWobble'), uGlow:uni('uGlow'), uNoise:uni('uNoise'), uSaturation:uni('uSaturation'), uScale:uni('uScale'), uHueShift:uni('uHueShift'), uColorFreq:uni('uColorFreq'), uBloom:uni('uBloom'), uCenterShift:uni('uCenterShift'), uInvBaseHalf:uni('uInvBaseHalf'), uInvHeight:uni('uInvHeight'), uMinAxis:uni('uMinAxis'), uTimeScale:uni('uTimeScale') };
+
+    function resize(){
+      const w=mount.clientWidth||1;
+      const h=mount.clientHeight||1;
+      const dpr=Math.min(2, window.devicePixelRatio||1);
+      canvas.width=w*dpr;
+      canvas.height=h*dpr;
+      canvas.style.width=w+'px';
+      canvas.style.height=h+'px';
+      gl.viewport(0,0,canvas.width, canvas.height);
+    }
+    new ResizeObserver(resize).observe(mount);
+    resize();
+
+    gl.uniform1f(u.uHeight, 3.5);
+    gl.uniform1f(u.uBaseHalf, 5.5*0.5);
+    gl.uniform1i(u.uUseBaseWobble, 1);
+    gl.uniform1f(u.uGlow, 1.0);
+    gl.uniform1f(u.uNoise, 0.35);
+    gl.uniform1f(u.uSaturation, 1.5);
+    gl.uniform1f(u.uScale, 3.6);
+    gl.uniform1f(u.uHueShift, 0.0);
+    gl.uniform1f(u.uColorFreq, 1.0);
+    gl.uniform1f(u.uBloom, 1.0);
+    gl.uniform1f(u.uCenterShift, 3.5*0.25);
+    gl.uniform1f(u.uInvBaseHalf, 1.0/(5.5*0.5));
+    gl.uniform1f(u.uInvHeight, 1.0/3.5);
+    gl.uniform1f(u.uMinAxis, Math.min(5.5*0.5,3.5));
+    gl.uniform1f(u.uTimeScale, 0.45);
+
+    const t0=performance.now();
+    function frame(t){
+      const time=(t-t0)*0.001;
+      gl.uniform2f(u.iResolution, canvas.width, canvas.height);
+      gl.uniform1f(u.iTime, time);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
+  function initFallback(){
+    const mount=document.getElementById('prism');
+    if(!mount) return;
+    const fb=document.createElement('div');
+    Object.assign(fb.style,{position:'absolute', inset:'0', background:'radial-gradient(800px 500px at 50% 40%, rgba(60,120,255,.15), transparent 60%), radial-gradient(600px 400px at 50% 70%, rgba(180,60,255,.10), transparent 60%)', animation:'bgpulse 6s ease-in-out infinite', zIndex:'0', pointerEvents:'none'});
+    mount.appendChild(fb);
+    const style=document.createElement('style');
+    style.textContent='@keyframes bgpulse{0%,100%{opacity:.85}50%{opacity:1}}';
+    document.head.appendChild(style);
+  }
+</script>
+</body>
+</html>
