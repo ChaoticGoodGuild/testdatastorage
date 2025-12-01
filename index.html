@@ -506,6 +506,14 @@
       // Send to Firebase (Firestore)
       saveSubmissionToFirebase(payload);
 
+        // Hide the overlay and store demographics locally
+      demoOverlay.classList.add('hidden');
+      state.demographics = {
+        email: email,
+        age: ageSelect.value || null,
+        gender: genderSelect.value || null,
+        trans: transCheck.checked || false
+      };
      
       // Show results regardless of backend success
       showResults();
@@ -719,4 +727,5 @@
 </script>
 </body>
 </html>
+
 
