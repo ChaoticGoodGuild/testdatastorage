@@ -506,30 +506,7 @@
       // Send to Firebase (Firestore)
       saveSubmissionToFirebase(payload);
 
-      // Also attempt to send data to the Google Apps Script backend
-      try {
-        fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).then(function(response){
-          console.log('Data sent to Apps Script backend', response.status);
-        }).catch(function(err){
-          console.error('Error sending data to Apps Script backend:', err);
-        });
-      } catch(err) {
-        console.error('Failed to send data to Apps Script backend:', err);
-      }
-
-      // Hide the overlay and store demographics locally
-      demoOverlay.classList.add('hidden');
-      state.demographics = {
-        email: email,
-        age: ageSelect.value || null,
-        gender: genderSelect.value || null,
-        trans: transCheck.checked || false
-      };
-
+     
       // Show results regardless of backend success
       showResults();
     });
@@ -742,3 +719,4 @@
 </script>
 </body>
 </html>
+
