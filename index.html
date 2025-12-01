@@ -315,7 +315,7 @@
 
     // URL for the Google Apps Script backend. Replace this string with your deployed Apps Script URL.
     // The Apps Script should accept POST requests with a JSON payload and store the data in your three Google Sheets.
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLmEPB-DvDhzuKbCWTGPAe-bYmkXW9RqDQNTLRBTik2URdQhaNTIzegzZBhZTnCqiq/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkYD2bsc40rqz-RyPVy52qQZYCRmMSPBgENH5zWi3jWgThoFYEB01wM_SAsKCqzobC/exec';
     let i=0;
     const state={ ethics:0, morality:0, answers:[] };
 
@@ -427,60 +427,59 @@
       return /.+@.+\..+/.test(email);
     }
 
-    // Handle demographics form submission
-    demoForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      const email = emailInput.value.trim();
-      if(!email || !isValidEmail(email)){
-        alert('Please enter a valid email address.');
-        return;
-      }
-      // Compute alignment label and axis percentages now
-      const x = clamp(state.ethics / MAX_AXIS.ethics, -1, 1);
-      const y = clamp(state.morality / MAX_AXIS.morality, -1, 1);
-      const alignmentLabel = quadrantLabel(x, y);
-      const ethicsPercent = Math.round((Math.abs(state.ethics) / MAX_AXIS.ethics) * 100);
-      const moralityPercent = Math.round((Math.abs(state.morality) / MAX_AXIS.morality) * 100);
-      // Generate a unique participant ID
-      const participantId = (typeof crypto !== 'undefined' && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : Math.random().toString(36).substring(2) + Date.now().toString(36);
-      // Build payload for the backend
-      const payload = {
-        participantId: participantId,
-        email: email,
-        age: ageSelect.value || null,
-        gender: genderSelect.value || null,
-        trans: transCheck.checked || false,
-        finalAlignment: alignmentLabel,
-        ethicsRaw: state.ethics,
-        ethicsPercent: ethicsPercent,
-        moralityRaw: state.morality,
-        moralityPercent: moralityPercent,
-        answers: state.answers || []
-      };
-      // Attempt to send data to the Google Apps Script backend
-      try {
-        fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).then(function(response){
-          console.log('Data sent to backend', response.status);
-        }).catch(function(err){
-          console.error('Error sending data to backend:', err);
-        });
-      } catch(err) {
-        console.error('Failed to send data to backend:', err);
-      }
-      // Hide the overlay and store demographics locally
-      demoOverlay.classList.add('hidden');
-      state.demographics = {
-        email: email,
-        age: ageSelect.value || null,
-        gender: genderSelect.value || null,
-        trans: transCheck.checked || false
-      };
+    // Handle demographics form submission using GET to avoid CORS
+demoForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const email = emailInput.value.trim();
+  if (!email || !/.+@.+\\..+/.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  // Compute alignment and percentages
+  const x = clamp(state.ethics / MAX_AXIS.ethics, -1, 1);
+  const y = clamp(state.morality / MAX_AXIS.morality, -1, 1);
+  const alignmentLabel = quadrantLabel(x, y);
+  const ethicsPercent   = Math.round(Math.abs(state.ethics)   / MAX_AXIS.ethics * 100);
+  const moralityPercent = Math.round(Math.abs(state.morality) / MAX_AXIS.morality * 100);
+
+  // Generate a participant ID
+  const participantId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+  // Build payload
+  const payload = {
+    participantId: participantId,
+    email: email,
+    age: ageSelect.value || null,
+    gender: genderSelect.value || null,
+    trans: transCheck.checked || false,
+    finalAlignment: alignmentLabel,
+    ethicsRaw: state.ethics,
+    ethicsPercent: ethicsPercent,
+    moralityRaw: state.morality,
+    moralityPercent: moralityPercent,
+    answers: state.answers || []
+  };
+
+  // Encode payload in URL parameter and ping the Apps Script via GET
+  const urlWithPayload =
+    SCRIPT_URL + '?payload=' + encodeURIComponent(JSON.stringify(payload));
+  const beacon = new Image();
+  beacon.src = urlWithPayload;
+
+  // Dismiss overlay and show results
+  demoOverlay.classList.add('hidden');
+  state.demographics = {
+    email: email,
+    age: ageSelect.value || null,
+    gender: genderSelect.value || null,
+    trans: transCheck.checked || false
+  };
+  showResults();
+});
+
       // Show results regardless of backend success
       showResults();
     });
